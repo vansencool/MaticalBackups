@@ -1,7 +1,5 @@
 package dev.vansen.backuper.commands;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,10 +9,10 @@ import org.xerial.snappy.SnappyInputStream;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class ExtractCommand implements CommandExecutor {
 
@@ -32,7 +30,7 @@ public class ExtractCommand implements CommandExecutor {
 
         String backupNum = args[0];
         File backupDir = new File("backups");
-        File backupFile = new File(backupDir, "backup-" + backupNum + ".tar.sz");
+        File backupFile = new File(backupDir, "backup-" + backupNum + ".snappy");
 
         if (!backupFile.exists()) {
             sender.sendMessage("Backup file not found.");
@@ -49,25 +47,31 @@ public class ExtractCommand implements CommandExecutor {
 
         sender.sendMessage("Restoring backup... This may take some time");
         try (FileInputStream fis = new FileInputStream(backupFile);
-             SnappyInputStream snappyInputStream = new SnappyInputStream(fis);
-             TarArchiveInputStream tarInputStream = new TarArchiveInputStream(snappyInputStream)) {
+             SnappyInputStream sis = new SnappyInputStream(fis);
+             ZipInputStream zis = new ZipInputStream(sis)) {
 
-            TarArchiveEntry entry;
-            while ((entry = tarInputStream.getNextTarEntry()) != null) {
-                Path outputPath = Paths.get(extractDir.getAbsolutePath(), entry.getName());
-                System.out.println("Processing: " + entry.getName()); // Add this line
-
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                File outFile = new File(extractDir, entry.getName());
                 if (entry.isDirectory()) {
-                    Files.createDirectories(outputPath);
+                    if (!outFile.mkdirs()) {
+                        sender.sendMessage("Failed to create directory: " + outFile.getAbsolutePath());
+                    }
                 } else {
-                    Files.createDirectories(outputPath.getParent());
-                    Files.copy(tarInputStream, outputPath);
-                    System.out.println("Extracted: " + entry.getName()); // Add this line
+                    outFile.getParentFile().mkdirs();
+                    try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = zis.read(buffer)) > 0) {
+                            fos.write(buffer, 0, length);
+                        }
+                    }
                 }
+                zis.closeEntry();
             }
 
             sender.sendMessage("Backup extracted successfully.");
-        } catch (final IOException | IllegalArgumentException e) {
+        } catch (IOException e) {
             sender.sendMessage("Error during extraction: " + e.getMessage());
             e.printStackTrace();
         }
