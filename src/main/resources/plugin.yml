@@ -1,0 +1,4 @@
+name: Backuper
+version: '${version}'
+main: dev.vansen.backuper.Backuper
+api-version: '1.20'

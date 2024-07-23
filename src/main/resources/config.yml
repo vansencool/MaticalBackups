@@ -1,0 +1,9 @@
+blacklisted_files:
+  - "libraries"
+  - "crash-reports"
+  - "config"
+  - "versions"
+  - "logs"
+  - "server.jar"
+  - "backups" # obviously
+  - "AxolotlSpigot.jar"
