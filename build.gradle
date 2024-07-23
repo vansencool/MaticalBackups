@@ -20,9 +20,11 @@ repositories {
 
 dependencies {
     implementation 'org.xerial.snappy:snappy-java:1.1.10.5'
-    implementation 'org.apache.commons:commons-compress:1.26.2'
+    implementation 'org.apache.commons:commons-compress:1.21' // Adjust version if needed
+    implementation 'commons-io:commons-io:2.11.0' // Ensure compatibility
     compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
 }
+
 
 def targetJavaVersion = 17
 java {
@@ -47,12 +49,13 @@ processResources {
     }
 }
 
-// Configure Shadow plugin
 shadowJar {
-    archiveClassifier.set('') // Remove '-all' from the JAR name
-    configurations = [project.configurations.runtimeClasspath] // Include all runtime dependencies
+    archiveClassifier.set('')
     mergeServiceFiles()
+    configurations = [project.configurations.runtimeClasspath]
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
 }
+
 
 tasks.build {
     dependsOn shadowJar

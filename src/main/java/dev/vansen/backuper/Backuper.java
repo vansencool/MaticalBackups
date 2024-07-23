@@ -1,5 +1,6 @@
 package dev.vansen.backuper;
 
+import dev.vansen.backuper.commands.ExtractCommand;
 import dev.vansen.backuper.utils.BackupCreator;
 import dev.vansen.backuper.utils.LogsDeleter;
 import org.bukkit.Bukkit;
@@ -13,6 +14,7 @@ public final class Backuper extends JavaPlugin {
         instance = this;
         saveDefaultConfig();
         LogsDeleter.deleteLogsFolder();
+        getCommand("extract").setExecutor(new ExtractCommand());
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, BackupCreator.createBackup(), 0L, 20L * 60 * 60); // Every hour
     }
