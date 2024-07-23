@@ -71,7 +71,7 @@ public class ExtractCommand implements CommandExecutor {
             }
 
             sender.sendMessage("Backup extracted successfully.");
-        } catch (IOException e) {
+        } catch (final IOException e) {
             sender.sendMessage("Error during extraction: " + e.getMessage());
             e.printStackTrace();
         }
