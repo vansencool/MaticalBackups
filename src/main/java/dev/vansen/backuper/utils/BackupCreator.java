@@ -36,6 +36,8 @@ public class BackupCreator {
             File backupFile = new File(backupDir, backupName);
 
             Backuper.getInstance().getLogger().info("Creating backup... This may take a while");
+
+            long startTime = System.currentTimeMillis();
             try (FileOutputStream fos = new FileOutputStream(backupFile);
                  SnappyOutputStream sos = new SnappyOutputStream(fos);
                  ZipOutputStream zos = new ZipOutputStream(sos)) {
@@ -52,7 +54,7 @@ public class BackupCreator {
                                 ZipEntry zipEntry = new ZipEntry(path.toString());
                                 zos.putNextEntry(zipEntry);
 
-                                byte[] buffer = new byte[1024];
+                                byte[] buffer = new byte[8192];
                                 int length;
                                 while ((length = fis.read(buffer)) > 0) {
                                     zos.write(buffer, 0, length);
@@ -63,7 +65,13 @@ public class BackupCreator {
                             }
                         });
 
+                long endTime = System.currentTimeMillis();
+                long duration = endTime - startTime;
+
+                long durationInSeconds = duration / 1000;
+
                 Backuper.getInstance().getLogger().info("Backup created successfully: " + backupFile.getAbsolutePath());
+                Backuper.getInstance().getLogger().info("Took " + durationInSeconds + " seconds (" + duration + " milliseconds)");
 
                 countingConfig.set("current_count", currentCount + 1);
                 countingConfig.save(countingFile);

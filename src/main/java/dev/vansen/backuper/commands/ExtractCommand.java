@@ -46,6 +46,7 @@ public class ExtractCommand implements CommandExecutor {
         }
 
         sender.sendMessage("Restoring backup... This may take some time");
+        long startTime = System.currentTimeMillis();
         try (FileInputStream fis = new FileInputStream(backupFile);
              SnappyInputStream sis = new SnappyInputStream(fis);
              ZipInputStream zis = new ZipInputStream(sis)) {
@@ -70,7 +71,13 @@ public class ExtractCommand implements CommandExecutor {
                 zis.closeEntry();
             }
 
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+
+            long durationInSeconds = duration / 1000;
+
             sender.sendMessage("Backup extracted successfully.");
+            sender.sendMessage("Took " + durationInSeconds + " seconds (" + duration + " milliseconds)");
         } catch (final IOException e) {
             sender.sendMessage("Error during extraction: " + e.getMessage());
             e.printStackTrace();
