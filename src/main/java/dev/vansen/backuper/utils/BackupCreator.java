@@ -32,8 +32,7 @@ public class BackupCreator {
             FileConfiguration countingConfig = YamlConfiguration.loadConfiguration(countingFile);
 
             int currentCount = countingConfig.getInt("current_count", 1);
-            String backupName = "backup-" + currentCount + ".snappy";
-            File backupFile = new File(backupDir, backupName);
+            File backupFile = new File(backupDir, "backup-" + currentCount + ".snappy");
 
             Backuper.getInstance().getLogger().info("Creating backup... This may take a while");
 
@@ -54,7 +53,7 @@ public class BackupCreator {
                                 ZipEntry zipEntry = new ZipEntry(path.toString());
                                 zos.putNextEntry(zipEntry);
 
-                                byte[] buffer = new byte[8192];
+                                byte[] buffer = new byte[8192]; // since I/O can be very large, so 8192 seems reasonable
                                 int length;
                                 while ((length = fis.read(buffer)) > 0) {
                                     zos.write(buffer, 0, length);

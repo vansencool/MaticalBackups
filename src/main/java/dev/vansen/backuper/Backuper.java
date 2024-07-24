@@ -19,6 +19,11 @@ public final class Backuper extends JavaPlugin {
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, BackupCreator.createBackup(), 0L, 20L * 60 * 60); // Every hour
     }
 
+    @Override
+    public void onDisable() {
+        Bukkit.getScheduler().cancelTasks(this);
+    }
+
     public static Backuper getInstance() {
         return instance;
     }
