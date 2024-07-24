@@ -6,4 +6,4 @@ blacklisted_files:
   - "logs"
   - "server.jar"
   - "backups" # obviously
-  - "AxolotlSpigot.jar"
+  - "restored_backups"
