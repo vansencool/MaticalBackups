@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -76,7 +78,7 @@ public class BackupCreator {
 
                 File backupTimestampsFile = new File(dataFolder, "backup_timestamps.yml");
                 FileConfiguration backupTimestampsConfig = YamlConfiguration.loadConfiguration(backupTimestampsFile);
-                backupTimestampsConfig.set("backup-" + currentCount, System.currentTimeMillis());
+                backupTimestampsConfig.set("backup-" + currentCount, new SimpleDateFormat("yy-MM-dd HH:mm:ss").format(new Date()));
                 backupTimestampsConfig.save(backupTimestampsFile);
 
             } catch (final IOException e) {
@@ -96,13 +98,19 @@ public class BackupCreator {
         long expirationTime = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
 
         for (String key : backupTimestampsConfig.getKeys(false)) {
-            long timestamp = backupTimestampsConfig.getLong(key);
-            if (currentTime - timestamp > expirationTime) {
-                File backupFile = new File(backupDir, key + ".snappy");
-                if (backupFile.exists() && backupFile.delete()) {
-                    backupTimestampsConfig.set(key, null);
-                    Backuper.getInstance().getLogger().info("Deleted old backup: " + backupFile.getAbsolutePath());
+            try {
+                Date timestamp = new SimpleDateFormat("yy-MM-dd HH:mm:ss").parse(backupTimestampsConfig.getString(key));
+                long timestampMillis = timestamp.getTime();
+                if (currentTime - timestampMillis > expirationTime) {
+                    File backupFile = new File(backupDir, key + ".snappy");
+                    if (backupFile.exists() && backupFile.delete()) {
+                        backupTimestampsConfig.set(key, null);
+                        Backuper.getInstance().getLogger().info("Deleted old backup: " + backupFile.getAbsolutePath());
+                    }
                 }
+            } catch (final Exception e) {
+                Backuper.getInstance().getLogger().severe("Error parsing timestamp for backup: " + key);
+                e.printStackTrace();
             }
         }
 
