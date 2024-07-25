@@ -16,7 +16,9 @@ public final class Backuper extends JavaPlugin {
         LogsDeleter.deleteLogsFolder();
         getCommand("extract").setExecutor(new ExtractCommand());
 
+        BackupCreator.deleteOldBackups();
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, BackupCreator.createBackup(), 0L, 20L * 60 * 60); // Every hour
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, BackupCreator::deleteOldBackups, 0L, 20L * 60 * 60); // Every hour
     }
 
     @Override

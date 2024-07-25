@@ -1,7 +1,6 @@
 package dev.vansen.backuper.utils;
 
 import dev.vansen.backuper.Backuper;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.xerial.snappy.SnappyOutputStream;
@@ -75,16 +74,43 @@ public class BackupCreator {
                 countingConfig.set("current_count", currentCount + 1);
                 countingConfig.save(countingFile);
 
-                Bukkit.getScheduler().runTaskLater(Backuper.getInstance(), () -> {
-                    if (backupFile.exists()) {
-                        backupFile.delete();
-                    }
-                }, 20L * 60 * 60 * 3); // 3 hours
+                File backupTimestampsFile = new File(dataFolder, "backup_timestamps.yml");
+                FileConfiguration backupTimestampsConfig = YamlConfiguration.loadConfiguration(backupTimestampsFile);
+                backupTimestampsConfig.set("backup-" + currentCount, System.currentTimeMillis());
+                backupTimestampsConfig.save(backupTimestampsFile);
 
             } catch (final IOException e) {
                 Backuper.getInstance().getLogger().severe("Error creating backup file: " + backupFile.getAbsolutePath());
                 e.printStackTrace();
             }
         };
+    }
+
+    public static void deleteOldBackups() {
+        File dataFolder = Backuper.getInstance().getDataFolder();
+        File backupDir = new File("backups");
+        File backupTimestampsFile = new File(dataFolder, "backup_timestamps.yml");
+        FileConfiguration backupTimestampsConfig = YamlConfiguration.loadConfiguration(backupTimestampsFile);
+
+        long currentTime = System.currentTimeMillis();
+        long expirationTime = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+
+        for (String key : backupTimestampsConfig.getKeys(false)) {
+            long timestamp = backupTimestampsConfig.getLong(key);
+            if (currentTime - timestamp > expirationTime) {
+                File backupFile = new File(backupDir, key + ".snappy");
+                if (backupFile.exists() && backupFile.delete()) {
+                    backupTimestampsConfig.set(key, null);
+                    Backuper.getInstance().getLogger().info("Deleted old backup: " + backupFile.getAbsolutePath());
+                }
+            }
+        }
+
+        try {
+            backupTimestampsConfig.save(backupTimestampsFile);
+        } catch (final IOException e) {
+            Backuper.getInstance().getLogger().severe("Error saving backup timestamps file.");
+            e.printStackTrace();
+        }
     }
 }
