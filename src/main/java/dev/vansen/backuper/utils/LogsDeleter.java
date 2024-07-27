@@ -1,9 +1,8 @@
 package dev.vansen.backuper.utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Comparator;
 
 public class LogsDeleter {
 
@@ -12,10 +11,15 @@ public class LogsDeleter {
         if (logsFolder.exists()) {
             try {
                 Files.walk(logsFolder.toPath())
-                        .sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .forEach(File::delete);
-            } catch (Exception e) {
+                        .filter(path -> path.toFile().isFile() && path.toFile().getName().endsWith(".gz"))
+                        .forEach(path -> {
+                            try {
+                                Files.delete(path);
+                            } catch (final IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+            } catch (final IOException e) {
                 e.printStackTrace();
             }
         }
