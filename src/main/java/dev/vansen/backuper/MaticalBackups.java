@@ -6,8 +6,8 @@ import dev.vansen.backuper.utils.LogsDeleter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class Backuper extends JavaPlugin {
-    private static Backuper instance;
+public final class MaticalBackups extends JavaPlugin {
+    private static MaticalBackups instance;
 
     @Override
     public void onEnable() {
@@ -26,7 +26,7 @@ public final class Backuper extends JavaPlugin {
         Bukkit.getScheduler().cancelTasks(this);
     }
 
-    public static Backuper getInstance() {
+    public static MaticalBackups getInstance() {
         return instance;
     }
 }

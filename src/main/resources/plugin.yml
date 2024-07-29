@@ -1,6 +1,6 @@
-name: Backuper
+name: MaticalBackups
 version: '${version}'
-main: dev.vansen.backuper.Backuper
+main: dev.vansen.backuper.MaticalBackups
 api-version: '1.20'
 commands:
   extract:

@@ -1,5 +1,6 @@
 package dev.vansen.backuper.commands;
 
+import dev.vansen.backuper.MaticalBackups;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -76,8 +77,10 @@ public class ExtractCommand implements CommandExecutor {
 
             long durationInSeconds = duration / 1000;
 
+            MaticalBackups.getInstance().getLogger().info("----------------------------------------------------------------------");
             sender.sendMessage("Backup extracted successfully.");
             sender.sendMessage("Took " + durationInSeconds + " seconds (" + duration + " milliseconds)");
+            MaticalBackups.getInstance().getLogger().info("----------------------------------------------------------------------");
         } catch (final IOException e) {
             sender.sendMessage("Error during extraction: " + e.getMessage());
             e.printStackTrace();

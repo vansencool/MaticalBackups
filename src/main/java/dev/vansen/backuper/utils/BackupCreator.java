@@ -1,6 +1,6 @@
 package dev.vansen.backuper.utils;
 
-import dev.vansen.backuper.Backuper;
+import dev.vansen.backuper.MaticalBackups;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.xerial.snappy.SnappyOutputStream;
@@ -24,25 +24,25 @@ public class BackupCreator {
         return () -> {
             File backupDir = new File("backups");
             if (!backupDir.exists() && !backupDir.mkdirs()) {
-                Backuper.getInstance().getLogger().severe("Failed to create backups directory.");
+                MaticalBackups.getInstance().getLogger().severe("Failed to create backups directory.");
                 return;
             }
 
-            File dataFolder = Backuper.getInstance().getDataFolder();
+            File dataFolder = MaticalBackups.getInstance().getDataFolder();
             File countingFile = new File(dataFolder, "counting.yml");
             FileConfiguration countingConfig = YamlConfiguration.loadConfiguration(countingFile);
 
             int currentCount = countingConfig.getInt("current_count", 1);
             File backupFile = new File(backupDir, "backup-" + currentCount + ".snappy");
 
-            Backuper.getInstance().getLogger().info("Creating backup... This may take a while");
+            MaticalBackups.getInstance().getLogger().info("Creating backup... This may take a while");
 
             long startTime = System.currentTimeMillis();
             try (FileOutputStream fos = new FileOutputStream(backupFile);
                  SnappyOutputStream sos = new SnappyOutputStream(fos);
                  ZipOutputStream zos = new ZipOutputStream(sos)) {
 
-                Predicate<Path> isExcluded = path -> Backuper.getInstance().getConfig().getStringList("blacklisted_files")
+                Predicate<Path> isExcluded = path -> MaticalBackups.getInstance().getConfig().getStringList("blacklisted_files")
                         .stream()
                         .noneMatch(path.toString()::contains);
 
@@ -70,8 +70,10 @@ public class BackupCreator {
 
                 long durationInSeconds = duration / 1000;
 
-                Backuper.getInstance().getLogger().info("Backup created successfully: " + backupFile.getAbsolutePath());
-                Backuper.getInstance().getLogger().info("Took " + durationInSeconds + " seconds (" + duration + " milliseconds)");
+                MaticalBackups.getInstance().getLogger().info("----------------------------------------------------------------------");
+                MaticalBackups.getInstance().getLogger().info("Backup created successfully: " + backupFile.getAbsolutePath());
+                MaticalBackups.getInstance().getLogger().info("Took " + durationInSeconds + " seconds (" + duration + " milliseconds)");
+                MaticalBackups.getInstance().getLogger().info("----------------------------------------------------------------------");
 
                 countingConfig.set("current_count", currentCount + 1);
                 countingConfig.save(countingFile);
@@ -82,14 +84,14 @@ public class BackupCreator {
                 backupTimestampsConfig.save(backupTimestampsFile);
 
             } catch (final IOException e) {
-                Backuper.getInstance().getLogger().severe("Error creating backup file: " + backupFile.getAbsolutePath());
+                MaticalBackups.getInstance().getLogger().severe("Error creating backup file: " + backupFile.getAbsolutePath());
                 e.printStackTrace();
             }
         };
     }
 
     public static void deleteOldBackups() {
-        File dataFolder = Backuper.getInstance().getDataFolder();
+        File dataFolder = MaticalBackups.getInstance().getDataFolder();
         File backupDir = new File("backups");
         File backupTimestampsFile = new File(dataFolder, "backup_timestamps.yml");
         FileConfiguration backupTimestampsConfig = YamlConfiguration.loadConfiguration(backupTimestampsFile);
@@ -105,11 +107,11 @@ public class BackupCreator {
                     File backupFile = new File(backupDir, key + ".snappy");
                     if (backupFile.exists() && backupFile.delete()) {
                         backupTimestampsConfig.set(key, null);
-                        Backuper.getInstance().getLogger().info("Deleted old backup: " + backupFile.getAbsolutePath());
+                        MaticalBackups.getInstance().getLogger().info("Deleted old backup: " + backupFile.getAbsolutePath());
                     }
                 }
             } catch (final Exception e) {
-                Backuper.getInstance().getLogger().severe("Error parsing timestamp for backup: " + key);
+                MaticalBackups.getInstance().getLogger().severe("Error parsing timestamp for backup: " + key);
                 e.printStackTrace();
             }
         }
@@ -117,7 +119,7 @@ public class BackupCreator {
         try {
             backupTimestampsConfig.save(backupTimestampsFile);
         } catch (final IOException e) {
-            Backuper.getInstance().getLogger().severe("Error saving backup timestamps file.");
+            MaticalBackups.getInstance().getLogger().severe("Error saving backup timestamps file.");
             e.printStackTrace();
         }
     }
